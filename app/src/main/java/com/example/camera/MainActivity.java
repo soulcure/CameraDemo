@@ -42,32 +42,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void open() {
-        cameraExample.openCamera(new Handler());
-    }
+        //cameraExample.openCamera(new Handler());
 
-
-    private void close() {
-        cameraExample.closeCamera();
-    }
-
-    @Override
-    public void onClick(View view) {
-        int id = view.getId();
-
-        if (id == R.id.btn_open) {
-            open();
-        } else if (id == R.id.btn_close) {
-            close();
-        } else {
-
-        }
-
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         if (checkCameraHardware(this)) {
             try {
                 mCamera = Camera.open();
@@ -83,6 +59,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
+    }
+
+
+    private void close() {
+        //cameraExample.closeCamera();
+        mCamera.stopPreview();
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+
+        if (id == R.id.btn_open) {
+            open();
+        } else if (id == R.id.btn_close) {
+            close();
+        } else {
+
+        }
+
     }
 
 
