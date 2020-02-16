@@ -2,20 +2,31 @@ package com.example.camera;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import com.example.image.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private Camera mCamera;
+    private CameraPreview mPreview;
+
+    private FrameLayout preview;
     CameraExample cameraExample;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        preview = (FrameLayout) findViewById(R.id.camera_preview);
+
         init();
 
         findViewById(R.id.btn_open).setOnClickListener(this);
@@ -52,4 +63,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (checkCameraHardware(this)) {
+            try {
+                mCamera = Camera.open();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mPreview = new CameraPreview(this, mCamera);
+            preview.addView(mPreview);
+            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+                @Override
+                public void onPreviewFrame(byte[] bytes, Camera camera) {
+                    Log.e("Camera", "onPreviewFrame():" + bytes.length);
+                }
+            });
+        }
+    }
+
+
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
 }
