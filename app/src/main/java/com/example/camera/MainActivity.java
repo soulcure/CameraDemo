@@ -22,9 +22,9 @@ import com.example.camera.previewutil.FaceCameraHelper;
 import com.example.camera.previewutil.FaceTrackListener;
 import com.example.camera.sdk.AFR_FSDKEngine;
 import com.example.camera.sdk.AFR_FSDKFace;
-import com.example.camera.sdk.AFT_FSDKEngine;
+import com.example.camera.sdk.FaceEngine;
 import com.example.camera.sdk.AFT_FSDKError;
-import com.example.camera.sdk.AFT_FSDKFace;
+import com.example.camera.sdk.Face;
 import com.example.image.R;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
 
     private static final int ACTION_REQUEST_PERMISSIONS = 1;
 
-    private AFT_FSDKEngine ftEngine;
+    private FaceEngine ftEngine;
     private AFT_FSDKError ftError;
 
     private TextureView textureViewPreview;
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
     }
 
     @Override
-    public void onPreviewData(byte[] nv21, List<AFT_FSDKFace> ftFaceList, List<Integer> trackIdList) {
+    public void onPreviewData(byte[] nv21, List<Face> ftFaceList, List<Integer> trackIdList) {
         Log.i(TAG, "onPreviewData: " + trackIdList.size());
         //请求获取人脸特征数据
         if (ftFaceList.size() > 0 && previewSize != null) {
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
     }
 
     @Override
-    public void adjustFaceRectList(List<AFT_FSDKFace> ftFaceList, List<Integer> trackIdList) {
+    public void adjustFaceRectList(List<Face> ftFaceList, List<Integer> trackIdList) {
 
     }
 
@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
         //模拟网络搜索人脸是否成功
         boolean success = new Random().nextBoolean();
         if (frFace != null) {
-
             requestFeatureStatusMap.put(requestId, success ? RequestFeatureStatus.SUCCEED : RequestFeatureStatus.FAILED);
             //模拟搜索成功后设置姓名
             if (success) {
@@ -148,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
 
     }
 
-    public void initCamera(@NonNull View previewView, @Nullable FaceRectView faceRectView, AFT_FSDKEngine ftEngine) {
+    public void initCamera(@NonNull View previewView, @Nullable FaceRectView faceRectView, FaceEngine ftEngine) {
         faceCameraHelper = new FaceCameraHelper.Builder()
                 .activity(this)
                 .specificCameraId(Camera.CameraInfo.CAMERA_FACING_FRONT)
@@ -165,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
     }
 
     private void initEngine() {
-        ftEngine = new AFT_FSDKEngine();
+        ftEngine = new FaceEngine();
         //ftError = ftEngine.RD_InitialFaceEngine();
         //Log.i(TAG, "init ftEngine: " + ftError.getCode());
     }

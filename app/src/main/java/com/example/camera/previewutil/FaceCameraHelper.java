@@ -16,8 +16,8 @@ import android.view.View;
 
 import com.example.camera.customview.FaceRectView;
 import com.example.camera.model.DrawInfo;
-import com.example.camera.sdk.AFT_FSDKEngine;
-import com.example.camera.sdk.AFT_FSDKFace;
+import com.example.camera.sdk.FaceEngine;
+import com.example.camera.sdk.Face;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,14 +26,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class FaceCameraHelper implements Camera.PreviewCallback {
     private static final String TAG = "FaceCameraHelper";
+
     private Camera mCamera;
     private int mCameraId;
-    private AFT_FSDKEngine ftEngine;
+    private FaceEngine ftEngine;
     /**
      * 预览显示的view，目前仅支持surfaceView和textureView
      */
@@ -49,16 +49,11 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
     private int faceRectColor = Color.YELLOW;
     private int faceRectThickness = 5;
 
-    /**
-     * fr 线程数，建议和ft初始化时的maxFaceNum相同
-     */
-    private int frThreadNum = 5;
 
-    private List<AFT_FSDKFace> ftFaceList = new ArrayList<>();
+    private List<Face> ftFaceList = new ArrayList<>();
     private Integer specificCameraId = null;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private FaceTrackListener faceTrackListener;
-    private LinkedBlockingQueue<FaceRecognizeRunnable> faceRecognizeRunnables = new LinkedBlockingQueue<FaceRecognizeRunnable>(frThreadNum);
     //trackId相关
     private int currentTrackId = 0;
     private List<Integer> formerTrackIdList = new ArrayList<>();
@@ -126,13 +121,6 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
         specificCameraId = builder.specificCameraId;
         faceTrackListener = builder.faceTrackListener;
         currentTrackId = builder.currentTrackId;
-
-        if (builder.frThreadNum > 0) {
-            frThreadNum = builder.frThreadNum;
-            faceRecognizeRunnables = new LinkedBlockingQueue<>(frThreadNum);
-        } else {
-            Log.e(TAG, "frThread num must > 0,now using default value:" + frThreadNum);
-        }
     }
 
 
@@ -157,17 +145,7 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
      * @param trackId  请求人脸特征的唯一请求码，一般使用trackId
      */
     public void requestFaceFeature(byte[] nv21, Rect faceRect, int width, int height, int format, int ori, Integer trackId) {
-        if (faceTrackListener != null) {
-            if (faceRecognizeRunnables.size() < frThreadNum) {
-                byte[] nv21Data = new byte[nv21.length];
-                System.arraycopy(nv21, 0, nv21Data, 0, nv21.length);
-                faceRecognizeRunnables.add(new FaceRecognizeRunnable(nv21Data, faceRect, width, height, format, ori, trackId));
-                executor.execute(faceRecognizeRunnables.poll());
-                Log.i(TAG, "requestFaceFeature: " + executor.hashCode() + "  " + FaceCameraHelper.this.hashCode());
-            } else {
-                faceTrackListener.onFaceFeatureInfoGet(null, trackId);
-            }
-        }
+
     }
 
 
@@ -304,7 +282,7 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
         if (faceTrackListener != null) {
             if (ftEngine != null) {
                 ftFaceList.clear();
-                int ftCode = ftEngine.AFT_FSDK_FaceFeatureDetect(nv21, previewSize.width, previewSize.height, AFT_FSDKEngine.CP_PAF_NV21, ftFaceList).getCode();
+                int ftCode = ftEngine.faceFeatureDetect(nv21, previewSize.width, previewSize.height, FaceEngine.CP_PAF_NV21, ftFaceList);
                 if (ftCode != 0) {
                     faceTrackListener.onFail(new Exception("ft failed,code is " + ftCode));
                 }
@@ -326,52 +304,11 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
 
 
     /**
-     * 人脸解析的线程
-     */
-    public class FaceRecognizeRunnable implements Runnable {
-        private Rect faceRect;
-        private int width;
-        private int height;
-        private int format;
-        private int ori;
-        private Integer trackId;
-        private byte[] nv21Data;
-
-        private FaceRecognizeRunnable(byte[] nv21Data, Rect faceRect, int width, int height, int format, int ori, Integer trackId) {
-            if (nv21Data == null) {
-                return;
-            }
-            this.nv21Data = new byte[nv21Data.length];
-            System.arraycopy(nv21Data, 0, this.nv21Data, 0, nv21Data.length);
-            this.faceRect = new Rect(faceRect);
-            this.width = width;
-            this.height = height;
-            this.format = format;
-            this.ori = ori;
-            this.trackId = trackId;
-        }
-
-        @Override
-        public void run() {
-            if (faceTrackListener != null && nv21Data != null) {
-
-                faceTrackListener.onFaceFeatureInfoGet(null, trackId);
-                faceTrackListener.onFail(new Exception("fr failed ,frEngine is null"));
-
-                if (faceRecognizeRunnables.size() > 0) {
-                    executor.execute(faceRecognizeRunnables.poll());
-                }
-            }
-        }
-    }
-
-
-    /**
      * 刷新trackId
      *
      * @param ftFaceList 传入的人脸列表
      */
-    private void refreshTrackId(List<AFT_FSDKFace> ftFaceList) {
+    private void refreshTrackId(List<Face> ftFaceList) {
         currentTrackIdList.clear();
         //每项预先填充-1
         for (int i = 0; i < ftFaceList.size(); i++) {
@@ -447,7 +384,7 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
     }
 
     public static final class Builder {
-        private AFT_FSDKEngine ftEngine;
+        private FaceEngine ftEngine;
         private View previewDisplayView;
         private FaceRectView faceRectView;
         private Activity activity;
@@ -455,14 +392,13 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
         private int faceRectThickness;
         private Integer specificCameraId;
         private FaceTrackListener faceTrackListener;
-        private int frThreadNum;
         private int currentTrackId;
 
         public Builder() {
         }
 
 
-        public Builder ftEngine(AFT_FSDKEngine val) {
+        public Builder ftEngine(FaceEngine val) {
             ftEngine = val;
             return this;
         }
@@ -504,11 +440,6 @@ public class FaceCameraHelper implements Camera.PreviewCallback {
 
         public Builder faceTrackListener(FaceTrackListener val) {
             faceTrackListener = val;
-            return this;
-        }
-
-        public Builder frThreadNum(int val) {
-            frThreadNum = val;
             return this;
         }
 

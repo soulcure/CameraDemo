@@ -7,7 +7,7 @@ import android.hardware.Camera;
 import androidx.annotation.Nullable;
 
 import com.example.camera.sdk.AFR_FSDKFace;
-import com.example.camera.sdk.AFT_FSDKFace;
+import com.example.camera.sdk.Face;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface FaceTrackListener {
      * @param ftFaceList  待处理的人脸列表
      * @param trackIdList 人脸追踪ID列表
      */
-    void onPreviewData(byte[] nv21, List<AFT_FSDKFace> ftFaceList, List<Integer> trackIdList);
+    void onPreviewData(byte[] nv21, List<Face> ftFaceList, List<Integer> trackIdList);
 
 
     /**
@@ -44,7 +44,7 @@ public interface FaceTrackListener {
      * @param ftFaceList  人脸列表
      * @param trackIdList 人脸追踪ID列表
      */
-    void adjustFaceRectList(List<AFT_FSDKFace> ftFaceList, List<Integer> trackIdList);
+    void adjustFaceRectList(List<Face> ftFaceList, List<Integer> trackIdList);
 
     /**
      * 请求人脸特征后的回调

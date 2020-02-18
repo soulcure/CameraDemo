@@ -3,18 +3,18 @@ package com.example.camera.sdk;
 
 import android.graphics.Rect;
 
-public class AFT_FSDKFace {
+public class Face {
     Rect mRect;
     int mAlarmType;
     int mAlarmState;
     int mDegree;
 
-    public AFT_FSDKFace(AFT_FSDKFace self) {
+    public Face(Face self) {
         mRect = new Rect(self.getRect());
         mDegree = self.getDegree();
     }
 
-    public AFT_FSDKFace() {
+    public Face() {
         mRect = new Rect();
         mDegree = 0;
     }
@@ -31,7 +31,7 @@ public class AFT_FSDKFace {
         return this.mRect.toString() + "," + this.mDegree;
     }
 
-    public AFT_FSDKFace clone() {
-        return new AFT_FSDKFace(this);
+    public Face clone() {
+        return new Face(this);
     }
 }
