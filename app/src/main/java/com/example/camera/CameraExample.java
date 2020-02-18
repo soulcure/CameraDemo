@@ -57,7 +57,9 @@ public class CameraExample {
 
                 SuExec su = new SuExec();
                 int res = su.imageArray(data);
-                
+
+                reader.acquireNextImage();
+
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             }
