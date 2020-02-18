@@ -20,15 +20,11 @@ import com.example.camera.common.RequestFeatureStatus;
 import com.example.camera.customview.FaceRectView;
 import com.example.camera.previewutil.FaceCameraHelper;
 import com.example.camera.previewutil.FaceTrackListener;
-import com.example.camera.sdk.AFR_FSDKEngine;
-import com.example.camera.sdk.AFR_FSDKFace;
 import com.example.camera.sdk.FaceEngine;
-import com.example.camera.sdk.AFT_FSDKError;
 import com.example.camera.sdk.Face;
 import com.example.image.R;
 
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
     private static final int ACTION_REQUEST_PERMISSIONS = 1;
 
     private FaceEngine ftEngine;
-    private AFT_FSDKError ftError;
 
     private TextureView textureViewPreview;
     private FaceRectView faceRectView;
@@ -104,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
             for (int i = 0; i < ftFaceList.size(); i++) {
                 if (requestFeatureStatusMap.get(trackIdList.get(i)) == null
                         || requestFeatureStatusMap.get(trackIdList.get(i)) == RequestFeatureStatus.FAILED) {
-                    faceCameraHelper.requestFaceFeature(nv21, ftFaceList.get(i).getRect(), previewSize.width, previewSize.height, AFR_FSDKEngine.CP_PAF_NV21, ftFaceList.get(i).getDegree(), trackIdList.get(i));
+                    faceCameraHelper.requestFaceFeature(nv21, ftFaceList.get(i).getRect(), previewSize.width, previewSize.height, FaceEngine.CP_PAF_NV21, ftFaceList.get(i).getDegree(), trackIdList.get(i));
                     requestFeatureStatusMap.put(trackIdList.get(i), RequestFeatureStatus.SEARCHING);
                 }
                 clearLeftFace(trackIdList);
@@ -131,21 +126,6 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
     }
 
 
-    @Override
-    public void onFaceFeatureInfoGet(AFR_FSDKFace frFace, Integer requestId) {
-        //模拟网络搜索人脸是否成功
-        boolean success = new Random().nextBoolean();
-        if (frFace != null) {
-            requestFeatureStatusMap.put(requestId, success ? RequestFeatureStatus.SUCCEED : RequestFeatureStatus.FAILED);
-            //模拟搜索成功后设置姓名
-            if (success) {
-                faceCameraHelper.putName(requestId, "requestId:" + requestId);
-            }
-        } else {
-            requestFeatureStatusMap.put(requestId, RequestFeatureStatus.FAILED);
-        }
-
-    }
 
     public void initCamera(@NonNull View previewView, @Nullable FaceRectView faceRectView, FaceEngine ftEngine) {
         faceCameraHelper = new FaceCameraHelper.Builder()
@@ -157,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements FaceTrackListener
                 .faceTrackListener(this)    //监听回调设置
                 .ftEngine(ftEngine)
                 .faceRectView(faceRectView) //人脸框绘制的控件
-                .frThreadNum(5) //FR线程队列的数量
                 .currentTrackId(1)  // 设置一个初始的trackID,后续在此增加
                 .build();
         faceCameraHelper.init();

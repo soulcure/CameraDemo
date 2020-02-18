@@ -6,7 +6,6 @@ import android.hardware.Camera;
 
 import androidx.annotation.Nullable;
 
-import com.example.camera.sdk.AFR_FSDKFace;
 import com.example.camera.sdk.Face;
 
 import java.util.List;
@@ -46,11 +45,4 @@ public interface FaceTrackListener {
      */
     void adjustFaceRectList(List<Face> ftFaceList, List<Integer> trackIdList);
 
-    /**
-     * 请求人脸特征后的回调
-     *
-     * @param frFace    人脸特征数据
-     * @param requestId 请求码
-     */
-    void onFaceFeatureInfoGet(@Nullable AFR_FSDKFace frFace, Integer requestId);
 }

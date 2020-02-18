@@ -20,6 +20,7 @@ public class FaceEngine {
     static {
         //System.loadLibrary("mpbase");
         //System.loadLibrary("ArcSoft_FTEngine");
+        System.loadLibrary("native-lib");
     }
 
     private int result = 0;
